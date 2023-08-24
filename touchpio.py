@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2023 Tod Kurt
 #
 # SPDX-License-Identifier: MIT
+# pylint: disable=line-too-long
 """
 `touchpio`
 ================================================================================
@@ -32,9 +33,12 @@ Implementation Notes
 
 **References:**
 
+ * Originally from `23 Feb 2023 picotouch_grid research <https://github.com/todbot/picotouch/tree/main/circuitpython/research/picotouch_grid/picotouch_grid>`_
+
  * Uses ideas from `PIO Capsense experiment / -scottiebabe 2022 <https://community.element14.com/products/raspberry-pi/f/forum/51242/want-to-create-a-capacitance-proximity-touch-sensor-with-a-rp2040-pico-board-using-pio/198662>`_
 
 """
+# pylint: enable=line-too-long
 
 # imports
 
@@ -63,7 +67,7 @@ class TouchIn:
     """
 
     capsense_pio_code = adafruit_pioasm.assemble(
-    """
+        """
     pull block           ; trigger a reading, get maxcount value from fifo, OSR contains maxcount
     set pindirs, 1       ; set GPIO as output
     set pins, 1          ; drive pin HIGH to charge capacitance
@@ -81,7 +85,8 @@ test:
 done:
     mov isr, x           ; load ISR with count value in x
     push                 ; push ISR into RX fifo
-    """)
+    """
+    )
 
     def __init__(self, touch_pin, max_count=10_000):
         """Use the TouchIn on the given pin.
@@ -89,30 +94,33 @@ done:
         :param ~microcontroller.Pin pin: the pin to read from
         """
         self.max_count = max_count
-        self.pio = rp2pio.StateMachine( TouchIn.capsense_pio_code,
-                                        frequency=125_000_000,
-                                        first_set_pin = touch_pin,
-                                        jmp_pin = touch_pin )
+        self.pio = rp2pio.StateMachine(
+            TouchIn.capsense_pio_code,
+            frequency=125_000_000,
+            first_set_pin=touch_pin,
+            jmp_pin=touch_pin,
+        )
         self.max_count = 10_000
-        self.buf_send = array.array("L", [max_count] )   # 32-bit value
-        self.buf_recv = array.array("L", [0] )  # 32-bit value
+        self.buf_send = array.array("L", [max_count])  # 32-bit value
+        self.buf_recv = array.array("L", [0])  # 32-bit value
         self.base_val = self.raw_value
         self.last_val = self.base_val
         self.threshold = self.base_val + 200
-        if self.base_val == 0xffffffff:  # -1
+        if self.base_val == 0xFFFFFFFF:  # -1
             raise ValueError("No pulldown on pin; 1Mohm recommended")
 
     def _raw_read(self):
-        self.pio.write( self.buf_send )
-        self.pio.readinto( self.buf_recv )
-        v = self.buf_recv[0]   # return 32-bit number from PIO
-        if v > self.max_count: v = self.last_val
-        self.last_val = v
-        return v
+        self.pio.write(self.buf_send)
+        self.pio.readinto(self.buf_recv)
+        val = self.buf_recv[0]  # return 32-bit number from PIO
+        if val > self.max_count:
+            val = self.last_val
+        self.last_val = val
+        return val
 
     @property
     def raw_value(self):
-        """"The raw touch measurement as an `int`. (read-only)"""
+        """ "The raw touch measurement as an `int`. (read-only)"""
         return self.max_count - self._raw_read()
 
     @property
