@@ -17,19 +17,12 @@ Implementation Notes
 
 **Hardware:**
 
-.. todo:: Add links to any specific hardware product page(s), or category page(s).
-  Use unordered list & hyperlink rST inline format: "* `Link Text <url>`_"
+This library only works on RP2040-based boards like the Raspberry Pi Pico, QTPY RP2040, and similar.
 
 **Software and Dependencies:**
 
 * Adafruit CircuitPython firmware for the supported boards:
   https://circuitpython.org/downloads
-
-.. todo:: Uncomment or remove the Bus Device and/or the Register library dependencies
-  based on the library's use of either.
-
-# * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
-# * Adafruit's Register library: https://github.com/adafruit/Adafruit_CircuitPython_Register
 
 **References:**
 
@@ -40,7 +33,6 @@ Implementation Notes
 """
 # pylint: enable=line-too-long
 
-# imports
 
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/todbot/CircuitPython_TouchPIO.git"
@@ -66,7 +58,7 @@ class TouchIn:
 
     """
 
-    capsense_pio_code = adafruit_pioasm.assemble(
+    _capsense_pio_code = adafruit_pioasm.assemble(
         """
     pull block           ; trigger a reading, get maxcount value from fifo, OSR contains maxcount
     set pindirs, 1       ; set GPIO as output
@@ -95,7 +87,7 @@ done:
         """
         self.max_count = max_count
         self.pio = rp2pio.StateMachine(
-            TouchIn.capsense_pio_code,
+            TouchIn._capsense_pio_code,
             frequency=125_000_000,
             first_set_pin=touch_pin,
             jmp_pin=touch_pin,
@@ -105,7 +97,22 @@ done:
         self.buf_recv = array.array("L", [0])  # 32-bit value
         self.base_val = self.raw_value
         self.last_val = self.base_val
+        """
+    Minimum `raw_value` needed to detect a touch (and for `value` to be `True`).
+
+    When the **TouchIn** object is created, an initial `raw_value` is read from the pin,
+    and then `threshold` is set to be 200 + that value.
+
+    You can adjust `threshold` to make the pin more or less sensitive::
+
+      import board
+      import touchpio
+
+      touch = touchio.TouchIn(board.GP4)
+      touch.threshold = 2000
+        """
         self.threshold = self.base_val + 200
+
         if self.base_val == 0xFFFFFFFF:  # -1
             raise ValueError("No pulldown on pin; 1Mohm recommended")
 
