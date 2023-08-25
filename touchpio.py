@@ -97,6 +97,7 @@ done:
         self.buf_recv = array.array("L", [0])  # 32-bit value
         self.base_val = self.raw_value
         self.last_val = self.base_val
+        self.threshold = self.base_val + 200
         """
     Minimum `raw_value` needed to detect a touch (and for `value` to be `True`).
 
@@ -111,7 +112,6 @@ done:
       touch = touchio.TouchIn(board.GP4)
       touch.threshold = 2000
         """
-        self.threshold = self.base_val + 200
 
         if self.base_val == 0xFFFFFFFF:  # -1
             raise ValueError("No pulldown on pin; 1Mohm recommended")
