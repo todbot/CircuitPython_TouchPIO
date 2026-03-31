@@ -18,11 +18,12 @@ Introduction
     :alt: Build Status
 
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/psf/black
-    :alt: Code Style: Black
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Code Style: Ruff
 
-Capacitive touch sensing using Pico / RP2040 PIO, using touchio API
+
+Capacitive touch sensing using Pico / Pico2 / RP2040 / RP2350 PIO, using touchio API
 
 
 Dependencies
@@ -64,12 +65,12 @@ Or the following command to update an existing version:
 Usage Example
 =============
 
-.. code-block::python
+.. code-block:: python
 
-    import touchio
+    import touchpio
     import board
 
-    touch = touchio.TouchIn(board.GP2)
+    touch = touchpio.TouchIn(board.GP2)
     while True:
     	if touch.value:
             print("touched!")

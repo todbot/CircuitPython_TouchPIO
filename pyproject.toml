@@ -30,6 +30,7 @@ keywords = [
     "capacitive",
     "pio",
     "rp2040",
+    "rp2350",
     "captouch",
     "capsense",
 ]
@@ -47,7 +48,8 @@ dynamic = ["dependencies", "optional-dependencies"]
 [tool.setuptools]
 # TODO: IF LIBRARY FILES ARE A PACKAGE FOLDER,
 #       CHANGE `py_modules = ['...']` TO `packages = ['...']`
-py-modules = ["touchpio"]
+#py-modules = ["touchpio"]
+packages = ["synth_tools"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

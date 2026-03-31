@@ -2,36 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2023 Tod Kurt
 #
 # SPDX-License-Identifier: MIT
-# pylint: disable=line-too-long
-"""
-`touchpio`
-================================================================================
-
-Capacitive touch sensing using Pico / RP2040 PIO, using touchio API
-
-
-* Author(s): Tod Kurt
-
-Implementation Notes
---------------------
-
-**Hardware:**
-
-This library only works on RP2040-based boards like the Raspberry Pi Pico, QTPY RP2040, and similar.
-
-**Software and Dependencies:**
-
-* Adafruit CircuitPython firmware for the supported boards:
-  https://circuitpython.org/downloads
-
-**References:**
-
- * Originally from `23 Feb 2023 picotouch_grid research <https://github.com/todbot/picotouch/tree/main/circuitpython/research/picotouch_grid/picotouch_grid>`_
-
- * Uses ideas from `PIO Capsense experiment / -scottiebabe 2022 <https://community.element14.com/products/raspberry-pi/f/forum/51242/want-to-create-a-capacitance-proximity-touch-sensor-with-a-rp2040-pico-board-using-pio/198662>`_
-
-"""
-# pylint: enable=line-too-long
+"""Capacitive touch sensing for RP2040/RP2350 using PIO."""
 
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/todbot/CircuitPython_TouchPIO.git"
@@ -43,8 +14,7 @@ import rp2pio
 
 
 class TouchIn:
-    """
-    Read the state of a capacitive touch sensor.
+    """Read the state of a capacitive touch sensor.
 
     Usage::
 
@@ -55,6 +25,24 @@ class TouchIn:
       while True:
           if touch.value:
               print("touched!")
+
+    **Hardware:**
+
+    This library only works on RP2040- or RP2350-based boards like the
+    Raspberry Pi Pico, QTPY RP2040, and similar.
+
+    **Software and Dependencies:**
+
+    * Adafruit CircuitPython firmware for the supported boards:
+      https://circuitpython.org/downloads
+
+    **References:**
+
+    * Originally from `23 Feb 2023 picotouch_grid research
+      <https://github.com/todbot/picotouch/tree/main/circuitpython/research/picotouch_grid/picotouch_grid>`_
+
+    * Uses ideas from `PIO Capsense experiment / -scottiebabe 2022
+      <https://community.element14.com/products/raspberry-pi/f/forum/51242/want-to-create-a-capacitance-proximity-touch-sensor-with-a-rp2040-pico-board-using-pio/198662>`_
 
     """
 
@@ -84,6 +72,8 @@ done:
         """Use the TouchIn on the given pin.
 
         :param ~microcontroller.Pin pin: the pin to read from
+        :param int max_count: the maximum possible pin value (a timeout effectively)
+
         """
         self.max_count = max_count
         self.pio = rp2pio.StateMachine(
@@ -92,7 +82,7 @@ done:
             first_set_pin=touch_pin,
             jmp_pin=touch_pin,
         )
-        self.max_count = 10_000
+        self.max_count = max_count
         self.buf_send = array.array("L", [max_count])  # 32-bit value
         self.buf_recv = array.array("L", [0])  # 32-bit value
         self.base_val = self.raw_value
