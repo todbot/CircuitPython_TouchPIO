@@ -33,13 +33,13 @@ This library only works on RP2040-based boards like the Raspberry Pi Pico, QTPY 
 """
 # pylint: enable=line-too-long
 
-
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/todbot/CircuitPython_TouchPIO.git"
 
 import array
-import rp2pio
+
 import adafruit_pioasm
+import rp2pio
 
 
 class TouchIn:
