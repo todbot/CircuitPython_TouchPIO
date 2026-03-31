@@ -139,5 +139,5 @@ done:
     @property
     def value(self):
         """Whether the touch pad is being touched or not. (read-only)
-        True when `raw_value` > `threshold`."""
+        True when ``raw_value`` > ``threshold``."""
         return self.raw_value > self.threshold
