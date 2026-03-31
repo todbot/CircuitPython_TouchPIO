@@ -15,36 +15,12 @@ import rp2pio
 
 
 class TouchIn:
-    """Read the state of a capacitive touch sensor.
+    """Read the state of a single capacitive touch sensor.
 
-    Usage::
-
-      import touchpio
-      import board
-
-      touch = touchpio.TouchIn(board.GP2)
-      while True:
-          if touch.value:
-              print("touched!")
-
-    **Hardware:**
-
-    This library only works on RP2040- or RP2350-based boards like the
-    Raspberry Pi Pico, QTPY RP2040, and similar. Each pad should have a
-    ~1MΩ resistor to ground (pull-down, the default) or to VCC (pull-up).
-
-    **Software and Dependencies:**
-
-    * Adafruit CircuitPython firmware for the supported boards:
-      https://circuitpython.org/downloads
-
-    **References:**
-
-    * Originally from `23 Feb 2023 picotouch_grid research
-      <https://github.com/todbot/picotouch/tree/main/circuitpython/research/picotouch_grid/picotouch_grid>`_
-
-    * Uses ideas from `PIO Capsense experiment / -scottiebabe 2022
-      <https://community.element14.com/products/raspberry-pi/f/forum/51242/want-to-create-a-capacitance-proximity-touch-sensor-with-a-rp2040-pico-board-using-pio/198662>`_
+    :param ~microcontroller.Pin touch_pin: the pin to read from
+    :param pull_type: ``digitalio.Pull.DOWN`` (default) for external pull-down
+        resistors, or ``digitalio.Pull.UP`` for external pull-up resistors.
+    :param int max_count: the maximum possible pin value (a timeout effectively)
 
     """
 
@@ -92,14 +68,6 @@ done:
     )
 
     def __init__(self, touch_pin, pull_type=digitalio.Pull.DOWN, max_count=10_000):
-        """Use the TouchIn on the given pin.
-
-        :param ~microcontroller.Pin touch_pin: the pin to read from
-        :param pull_type: ``digitalio.Pull.DOWN`` (default) for external pull-down
-            resistors, or ``digitalio.Pull.UP`` for external pull-up resistors.
-        :param int max_count: the maximum possible pin value (a timeout effectively)
-
-        """
         if pull_type not in {digitalio.Pull.DOWN, digitalio.Pull.UP}:
             raise ValueError("pull_type must be digitalio.Pull.DOWN or .UP")
         pio_code = (
@@ -133,7 +101,7 @@ done:
 
     @property
     def raw_value(self):
-        """ "The raw touch measurement as an `int`. (read-only)"""
+        """The raw touch measurement as an `int`. (read-only)"""
         return self.max_count - self._raw_read()
 
     @property

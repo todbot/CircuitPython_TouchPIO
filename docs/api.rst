@@ -1,8 +1,6 @@
 API Reference
 =============
 
-.. autoclass:: touchpio.TouchIn
+.. automodule:: touchpio
     :members:
-
-.. autoclass:: touchpio.TouchInMulti
-    :members:
+    :imported-members:
