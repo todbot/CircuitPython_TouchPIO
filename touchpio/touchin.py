@@ -10,6 +10,7 @@ __repo__ = "https://github.com/todbot/CircuitPython_TouchPIO.git"
 import array
 
 import adafruit_pioasm
+import digitalio
 import rp2pio
 
 
@@ -29,7 +30,8 @@ class TouchIn:
     **Hardware:**
 
     This library only works on RP2040- or RP2350-based boards like the
-    Raspberry Pi Pico, QTPY RP2040, and similar.
+    Raspberry Pi Pico, QTPY RP2040, and similar. Each pad should have a
+    ~1MΩ resistor to ground (pull-down, the default) or to VCC (pull-up).
 
     **Software and Dependencies:**
 
@@ -46,14 +48,13 @@ class TouchIn:
 
     """
 
-    _capsense_pio_code = adafruit_pioasm.assemble(
+    _pio_pulldown = adafruit_pioasm.assemble(
         """
     pull block           ; trigger a reading, get maxcount value from fifo, OSR contains maxcount
     set pindirs, 1       ; set GPIO as output
     set pins, 1          ; drive pin HIGH to charge capacitance
-;    set x,24             ; wait time for pin charge
     set x,30             ; wait time for pin charge
-charge:                  ; wait (24+1)*31 = 1085 cycles = 8.6us
+charge:
     jmp x--, charge [31]
     mov x, osr           ; load maxcount value (10_000 usually)
     set pindirs, 0       ; set GPIO as input
@@ -68,43 +69,58 @@ done:
     """
     )
 
-    def __init__(self, touch_pin, max_count=10_000):
+    _pio_pullup = adafruit_pioasm.assemble(
+        """
+    pull block           ; trigger a reading, get maxcount value from fifo, OSR contains maxcount
+    set pindirs, 1       ; set GPIO as output
+    set pins, 0          ; drive pin LOW to discharge capacitance
+    set x,30             ; wait time for pin discharge
+discharge:
+    jmp x--, discharge [31]
+    mov x, osr           ; load maxcount value (10_000 usually)
+    set pindirs, 0       ; set GPIO as input
+timing:
+    jmp x--, test        ; decrement x until timeout
+    jmp done             ; we've timed out, so leave
+test:
+    jmp pin, done        ; if pin charged HIGH, we're done
+    jmp timing           ; pin still LOW, keep looping
+done:
+    mov isr, x           ; load ISR with count value in x
+    push                 ; push ISR into RX fifo
+    """
+    )
+
+    def __init__(self, touch_pin, pull_type=digitalio.Pull.DOWN, max_count=10_000):
         """Use the TouchIn on the given pin.
 
-        :param ~microcontroller.Pin pin: the pin to read from
+        :param ~microcontroller.Pin touch_pin: the pin to read from
+        :param pull_type: ``digitalio.Pull.DOWN`` (default) for external pull-down
+            resistors, or ``digitalio.Pull.UP`` for external pull-up resistors.
         :param int max_count: the maximum possible pin value (a timeout effectively)
 
         """
+        if pull_type not in {digitalio.Pull.DOWN, digitalio.Pull.UP}:
+            raise ValueError("pull_type must be digitalio.Pull.DOWN or .UP")
+        pio_code = (
+            TouchIn._pio_pulldown if pull_type == digitalio.Pull.DOWN else TouchIn._pio_pullup
+        )
         self.max_count = max_count
+        self.last_val = 0
         self.pio = rp2pio.StateMachine(
-            TouchIn._capsense_pio_code,
+            pio_code,
             frequency=125_000_000,
             first_set_pin=touch_pin,
             jmp_pin=touch_pin,
         )
-        self.max_count = max_count
         self.buf_send = array.array("L", [max_count])  # 32-bit value
         self.buf_recv = array.array("L", [0])  # 32-bit value
         self.base_val = self.raw_value
-        self.last_val = self.base_val
         self.threshold = self.base_val + 200
-        """
-    Minimum `raw_value` needed to detect a touch (and for `value` to be `True`).
 
-    When the **TouchIn** object is created, an initial `raw_value` is read from the pin,
-    and then `threshold` is set to be 200 + that value.
-
-    You can adjust `threshold` to make the pin more or less sensitive::
-
-      import board
-      import touchpio
-
-      touch = touchio.TouchIn(board.GP4)
-      touch.threshold = 2000
-        """
-
+        pull_name = "pulldown" if pull_type == digitalio.Pull.DOWN else "pullup"
         if self.base_val == 0xFFFFFFFF:  # -1
-            raise ValueError("No pulldown on pin; 1Mohm recommended")
+            raise ValueError(f"No {pull_name} on pin; 1Mohm recommended")
 
     def _raw_read(self):
         self.pio.write(self.buf_send)
