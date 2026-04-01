@@ -1,7 +1,11 @@
-# SPDX-FileCopyrightText: 2017 Scott Shawcroft, written for Adafruit Industries
 # SPDX-FileCopyrightText: Copyright (c) 2023 Tod Kurt
 #
 # SPDX-License-Identifier: Unlicense
+"""
+touchpio_simpletest.py
+
+touchpio test with a single pad. It works just like touchio.
+"""
 
 import board
 

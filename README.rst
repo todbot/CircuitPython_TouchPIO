@@ -31,12 +31,32 @@ Dependencies
 This driver depends on:
 
 * `Adafruit CircuitPython <https://github.com/adafruit/circuitpython>`_
+* RP2040- or RP2350-based microcontrollers (as it uses their PIO module)
 
-Please ensure all dependencies are available on the CircuitPython filesystem.
-This is easily achieved by downloading
-`the Adafruit library and driver bundle <https://circuitpython.org/libraries>`_
-or individual libraries can be installed using
-`circup <https://github.com/adafruit/circup>`_.
+
+Hardware
+========
+
+Each touch pad connects to a GPIO pin with a ~1MΩ resistor to ground
+(pull-down, the default) or to 3.3V (pull-up). Pads can be exposed copper,
+foil tape, conductive fabric, etc.
+
+This library only works on RP2040- or RP2350-based boards like the
+Raspberry Pi Pico, QTPY RP2040, and similar.
+
+
+Usage Example
+=============
+
+.. code-block:: python
+
+    import touchpio
+    import board
+
+    touch = touchpio.TouchIn(board.GP2)
+    while True:
+    	if touch.value:
+            print("touched!")
 
 
 Installing to a Connected CircuitPython Device with Circup
@@ -62,20 +82,6 @@ Or the following command to update an existing version:
 
     circup update
 
-Usage Example
-=============
-
-.. code-block:: python
-
-    import touchpio
-    import board
-
-    touch = touchpio.TouchIn(board.GP2)
-    while True:
-    	if touch.value:
-            print("touched!")
-
-
 
 Documentation
 =============
@@ -83,6 +89,15 @@ API documentation for this library can be found on `Read the Docs <https://circu
 
 For information on building library documentation, please check out
 `this guide <https://learn.adafruit.com/creating-and-sharing-a-circuitpython-library/sharing-our-docs-on-readthedocs#sphinx-5-1>`_.
+
+References
+==========
+
+* Originally from `23 Feb 2023 picotouch_grid research
+  <https://github.com/todbot/picotouch/tree/main/circuitpython/research/picotouch_grid/picotouch_grid>`_
+
+* Uses ideas from `PIO Capsense experiment / -scottiebabe 2022
+  <https://community.element14.com/products/raspberry-pi/f/forum/51242/want-to-create-a-capacitance-proximity-touch-sensor-with-a-rp2040-pico-board-using-pio/198662>`_
 
 Contributing
 ============
